@@ -1,15 +1,13 @@
 import random
 from model import EV
 
-class utils:
-
-    def time_converter(time, mode='print'):
-        minutes, seconds = divmod(time, 60)
-        hours, minutes = divmod(minutes, 60)
-        if mode=='print':
-            return str("%d:%02d:%02d" % (hours, minutes, seconds))
-        if mode=='num':
-            return hours, minutes, seconds
+def time_converter(time, mode='print'):
+    minutes, seconds = divmod(time, 60)
+    hours, minutes = divmod(minutes, 60)
+    if mode=='print':
+        return str("%d:%02d:%02d" % (hours, minutes, seconds))
+    if mode=='num':
+        return hours, minutes, seconds
 
 def arrival(time, plug, station, kw_charge, inter_arrival):
     global in_service
@@ -23,16 +21,19 @@ def arrival(time, plug, station, kw_charge, inter_arrival):
     plug.ut += (plug.users)*(time - plug.oTime)
     plug.oTime = time
     
+    # Getting Random Choice for Each Drone
     rand_choice = random.randint(0, len(station)-1)
     while station[rand_choice].status!="Online":
         rand_choice = random.randint(0, len(station)-1)
     station[rand_choice].FES.put((time + inter_arrival, "Arrival"))
+
+    # Getting requested EV information
+    ev = EV(TYPE1, time)
     
     if (len(plug.queue) < (plug.buffersize)) and (plug.service_condition == "At Service"):
         print(f"ARR plug {str(plug.nQ)} - {plug.name} {plug.status} ({plug.charge_level}): Arrival No. {data.arr} ({plug.n_arrival}) at time {time_converter(time, mode='print')} with {plug.users} users in queue!")      
         plug.users += 1
         data.users += 1
-        ev = EV(TYPE1, time)
         plug.queue.append(ev)
         plug.delayed.append(ev.arrival_time)
         

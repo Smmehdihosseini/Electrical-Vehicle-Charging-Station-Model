@@ -1,0 +1,28 @@
+import pandas as pd
+import numpy as np
+import json
+
+ev_data = pd.read_csv("data/ev_data.csv")
+elec_price = pd.read_csv('data/eur_elec_price_hourly.csv')
+with open('data/ev_market.json') as json_file:
+    ev_share = json.load(json_file)
+
+def get_car_name():
+    ev_prob_sum = sum(ev_share.values())
+    for key in ev_share:
+        ev_share[key] = ev_share[key]/ev_prob_sum
+        
+    return list(ev_share.keys())[np.random.choice(len(ev_share.keys()), 1,
+                                    replace = False,
+                                    p=list(ev_share.values()))[0]]
+
+def get_cars_data():
+    return ev_data.loc[ev_data['Brand'].isin(ev_share.keys())].reset_index().drop(columns=['index',
+                                      'Segment', 'Seats', 'PriceEuro', 'PowerTrain', 'TopSpeed_KmH',
+                                      'AccelSec', 'BodyStyle'])
+
+def get_elec_price(city):
+    elec_price = elec_price[elec_price['Country']==city].drop(columns=['Country', 'ISO3 Code', 'Datetime (Local)'])
+    elec_price = elec_price.rename(columns={'Price (EUR/MWhe)':'Price (EUR/KWhe)'}).set_index('Datetime (UTC)')
+    elec_price['Price (EUR/KWhe)'] = elec_price['Price (EUR/KWhe)'].div(1000)
+    return elec_price
